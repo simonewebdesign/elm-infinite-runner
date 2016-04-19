@@ -42,7 +42,10 @@ update action model =
       model
 
     UpdateAnimationState ->
-      { model | animationState = model.animationState + 1 }
+      if model.animationState > 7 then
+        { model | animationState = 1 }
+      else
+        { model | animationState = model.animationState + 1 }
 
 
 actions : Signal.Mailbox Action
