@@ -25,12 +25,9 @@ view address model =
   collage 800 480
     [ rect 800 480
         |> filled (rgb 18 93 75)
-        --|> toForm
-        --|> moveY 200
 
     , rect 800 110
         |> filled (rgb 166 118 65)
-        --|> toForm
         |> moveY -183
 
     , image 100 60 (playerAssetPath model)
@@ -40,8 +37,7 @@ view address model =
     , show (toString model)
         |> Graphics.Collage.toForm
     ]
-  |> clickable (Signal.message actions.address UpdateAnimationState)
-  --|> clickable (Signal.message tasksMailbox.address start)
+  --|> clickable (Signal.message actions.address UpdateAnimationState)
 
 
 playerAssetPath : Model -> String
@@ -89,12 +85,6 @@ model =
   Signal.foldp update initialModel input
 
 
---start : Task x ()
---start =
-  --sleep 1000 `andThen` \_ -> succeed Update
-  --sleep 1000 `andThen` \_ -> Signal.send actions.address Update
-
-
 port tasks : Signal (Task x ())
 port tasks =
   tasksMailbox.signal
@@ -102,12 +92,8 @@ port tasks =
 
 main =
   Signal.map (view actions.address) model
---main : Signal Element
---main =
-  --Signal.map view (Signal.foldp update model input)
 
 
---input : Signal (Float, Keys)
 input =
   let
     delta = Signal.map (\t -> t/20) (fps 10)
