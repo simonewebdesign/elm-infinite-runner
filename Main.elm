@@ -27,9 +27,16 @@ view address model =
         |> filled (rgb 18 93 75)
         --|> toForm
         --|> moveY 200
+
+    , rect 800 110
+        |> filled (rgb 166 118 65)
+        --|> toForm
+        |> moveY -183
+
     , image 100 60 (playerAssetPath model)
         |> toForm
-        |> moveY -210
+        |> move (-300, -100)
+
     , show (toString model)
         |> Graphics.Collage.toForm
     ]
