@@ -9,14 +9,14 @@ import Keyboard
 
 type alias Model =
   { animationState : Int
-  , counter : Int
+  , pause : Bool
   }
 
 
 initialModel : Model
 initialModel =
   { animationState = 1
-  , counter = 0
+  , pause = True
   }
 
 
@@ -27,7 +27,7 @@ view address model =
         |> filled (rgb 18 93 75)
         --|> toForm
         --|> moveY 200
-    , image 100 60 ("assets/k" ++ (toString model.animationState) ++ ".png")
+    , image 100 60 (playerAssetPath model)
         |> toForm
         |> moveY -210
     , show (toString model)
@@ -37,10 +37,18 @@ view address model =
   --|> clickable (Signal.message tasksMailbox.address start)
 
 
+playerAssetPath : Model -> String
+playerAssetPath model =
+  if model.pause then
+    "assets/i1.png"
+  else
+    "assets/k" ++ (toString model.animationState) ++ ".png"
+
+
 type Action
   = NoOp
+  | TogglePause
   | UpdateAnimationState
-  | UpdateCounter
 
 
 update : Action -> Model -> Model
@@ -49,14 +57,14 @@ update action model =
     NoOp ->
       model
 
+    TogglePause ->
+      { model | pause = not model.pause }
+
     UpdateAnimationState ->
       if model.animationState > 7 then
         { model | animationState = 1 }
       else
         { model | animationState = model.animationState + 1 }
-
-    UpdateCounter ->
-      { model | counter = model.counter + 1 }      
 
 
 actions : Signal.Mailbox Action
@@ -99,5 +107,10 @@ input =
     gameLoop = Signal.sampleOn delta (Signal.map2 (,) delta Keyboard.arrows)
     toAction = always UpdateAnimationState
     arrowsToAction = Signal.map toAction gameLoop
+    togglePause = Signal.map (\pressed ->
+      if pressed then
+        TogglePause
+      else
+        NoOp) Keyboard.space
   in
-    Signal.mergeMany [ actions.signal, arrowsToAction ]
+    Signal.mergeMany [ actions.signal, arrowsToAction, togglePause ]
