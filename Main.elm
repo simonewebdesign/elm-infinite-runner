@@ -3,13 +3,20 @@ import Graphics.Collage exposing (..)
 import Graphics.Input exposing (clickable)
 import Color exposing (..)
 import Task exposing (Task, sleep, andThen, succeed)
-
-main =
-  Signal.map (view actions.address) model
+import Time exposing (..)
+import Keyboard
 
 
 type alias Model =
   { animationState : Int
+  , counter : Int
+  }
+
+
+initialModel : Model
+initialModel =
+  { animationState = 1
+  , counter = 0
   }
 
 
@@ -31,14 +38,15 @@ view address model =
 
 
 type Action
-  = Start
+  = NoOp
   | UpdateAnimationState
+  | UpdateCounter
 
 
 update : Action -> Model -> Model
 update action model =
   case Debug.log "action" action of
-    Start ->
+    NoOp ->
       model
 
     UpdateAnimationState ->
@@ -47,10 +55,13 @@ update action model =
       else
         { model | animationState = model.animationState + 1 }
 
+    UpdateCounter ->
+      { model | counter = model.counter + 1 }      
+
 
 actions : Signal.Mailbox Action
 actions =
-  Signal.mailbox Start
+  Signal.mailbox NoOp
 
 
 tasksMailbox : Signal.Mailbox (Task x ())
@@ -58,15 +69,9 @@ tasksMailbox =
   Signal.mailbox (Task.succeed ())
 
 
-initialModel : Model
-initialModel =
-  { animationState = 1
-  }
-
-
 model : Signal Model
 model =
-  Signal.foldp update initialModel actions.signal
+  Signal.foldp update initialModel input
 
 
 --start : Task x ()
@@ -78,3 +83,21 @@ model =
 port tasks : Signal (Task x ())
 port tasks =
   tasksMailbox.signal
+
+
+main =
+  Signal.map (view actions.address) model
+--main : Signal Element
+--main =
+  --Signal.map view (Signal.foldp update model input)
+
+
+--input : Signal (Float, Keys)
+input =
+  let
+    delta = Signal.map (\t -> t/20) (fps 10)
+    gameLoop = Signal.sampleOn delta (Signal.map2 (,) delta Keyboard.arrows)
+    toAction = always UpdateAnimationState
+    arrowsToAction = Signal.map toAction gameLoop
+  in
+    Signal.mergeMany [ actions.signal, arrowsToAction ]
