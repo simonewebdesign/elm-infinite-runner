@@ -9,9 +9,8 @@ main =
 
 
 type alias Model =
-  Int
-  --{ animationState : Int
-  --}
+  { animationState : Int
+  }
 
 
 view : Signal.Address Action -> Model -> Graphics.Element.Element
@@ -21,19 +20,19 @@ view address model =
         |> filled (rgb 18 93 75)
         --|> toForm
         --|> moveY 200
-    , image 100 60 "assets/k.png"
+    , image 100 60 ("assets/k" ++ (toString model.animationState) ++ ".png")
         |> toForm
         |> moveY -210
     , show (toString model)
         |> Graphics.Collage.toForm
     ]
-  --|> clickable (Signal.message actions.address Update)
+  |> clickable (Signal.message actions.address UpdateAnimationState)
   --|> clickable (Signal.message tasksMailbox.address start)
 
 
 type Action
   = Start
-  | Update
+  | UpdateAnimationState
 
 
 update : Action -> Model -> Model
@@ -42,8 +41,8 @@ update action model =
     Start ->
       model
 
-    Update ->
-      model + 1
+    UpdateAnimationState ->
+      { model | animationState = model.animationState + 1 }
 
 
 actions : Signal.Mailbox Action
@@ -58,7 +57,8 @@ tasksMailbox =
 
 initialModel : Model
 initialModel =
-  3
+  { animationState = 1
+  }
 
 
 model : Signal Model
@@ -66,10 +66,10 @@ model =
   Signal.foldp update initialModel actions.signal
 
 
-start : Task x ()
-start =
+--start : Task x ()
+--start =
   --sleep 1000 `andThen` \_ -> succeed Update
-  sleep 1000 `andThen` \_ -> Signal.send actions.address Update
+  --sleep 1000 `andThen` \_ -> Signal.send actions.address Update
 
 
 port tasks : Signal (Task x ())
